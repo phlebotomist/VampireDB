@@ -23,7 +23,12 @@ public sealed class Storage : IDisposable
 
     private Storage(string filePath)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        var dir = Path.GetDirectoryName(filePath);
+        if (!Directory.Exists(dir))
+        {
+            Plugin.Logger.LogInfo($"No storage found creating storage at: {filePath}");
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        }
 
         _db = new LiteDatabase(new ConnectionString
         {
