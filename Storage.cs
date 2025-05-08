@@ -23,6 +23,8 @@ public sealed class Storage : IDisposable
 
     private Storage(string filePath)
     {
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
         _db = new LiteDatabase(new ConnectionString
         {
             Filename = filePath,
@@ -59,6 +61,7 @@ public sealed class Storage : IDisposable
         {
             var rec = new Record
             {
+                Id = $"{platformId}:{key}",
                 PlatformId = platformId,
                 Key = key,
                 Value = _db.Mapper.Serialize(typeof(T), value)
@@ -105,7 +108,7 @@ public sealed class Storage : IDisposable
     }
     private class Record
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public ulong PlatformId { get; set; }
         public string Key { get; set; }
         public BsonValue Value { get; set; }
