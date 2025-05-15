@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using LiteDB;
 
@@ -91,6 +92,26 @@ public sealed class Storage : IDisposable
                 Value = _db.Mapper.Serialize(typeof(T), value)
             };
             _col.Upsert(rec);
+        }
+    }
+
+    /// <summary>
+    /// Return every record whose with the provided Key.
+    /// The result is a Dictionary mapping PlatformId → value.
+    /// </summary>
+    public Dictionary<ulong, T> GetAll<T>(string key)
+    {
+        lock (_sync)
+        {
+            var dict = new Dictionary<ulong, T>();
+
+            foreach (var rec in _col.Find(r => r.Key == key))
+            {
+                var value = (T)_db.Mapper.Deserialize(typeof(T), rec.Value);
+                dict[rec.PlatformId] = value;
+            }
+
+            return dict;
         }
     }
 
