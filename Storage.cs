@@ -41,6 +41,25 @@ public sealed class Storage : IDisposable
         _col.EnsureIndex(r => new { r.PlatformId, r.Key }, true);
     }
 
+    /// <summary>
+    /// Run a function in a transaction. If the function throws, the transaction is rolled back.
+    /// </summary>
+    public void RunInTransaction(Action body)
+    {
+        if (!_db.BeginTrans())
+            throw new InvalidOperationException("Another transaction in progress");
+
+        try
+        {
+            body();
+            _db.Commit();
+        }
+        catch
+        {
+            _db.Rollback();
+            throw;
+        }
+    }
 
     /// <summary>
     /// Update a value based on a lambda function that expects the current val as a param.
